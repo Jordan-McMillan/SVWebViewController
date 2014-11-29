@@ -20,6 +20,7 @@
 
 @property (nonatomic, strong) UIWebView *webView;
 @property (nonatomic, strong) NSURLRequest *request;
+@property (nonatomic, weak) id<SVWebViewDelegate> callerWebViewDelegate;
 
 @end
 
@@ -32,19 +33,28 @@
     [self.webView stopLoading];
  	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     self.webView.delegate = nil;
+    self.callerWebViewDelegate = nil;
+    self.request = nil;
+    self.webView = nil;
+    _backBarButtonItem = nil;
+    _forwardBarButtonItem = nil;
+    _refreshBarButtonItem = nil;
+    _stopBarButtonItem = nil;
+    _actionBarButtonItem = nil;
 }
 
-- (instancetype)initWithAddress:(NSString *)urlString {
-    return [self initWithURL:[NSURL URLWithString:urlString]];
+- (instancetype)initWithAddress:(NSString *)urlString andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
+    return [self initWithURL:[NSURL URLWithString:urlString] andWebViewDelegate:webViewDelegate];
 }
 
-- (instancetype)initWithURL:(NSURL*)pageURL {
-    return [self initWithURLRequest:[NSURLRequest requestWithURL:pageURL]];
+- (instancetype)initWithURL:(NSURL*)pageURL andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
+    return [self initWithURLRequest:[NSURLRequest requestWithURL:pageURL] andWebViewDelegate:webViewDelegate];
 }
 
-- (instancetype)initWithURLRequest:(NSURLRequest*)request {
+- (instancetype)initWithURLRequest:(NSURLRequest*)request andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
     self = [super init];
     if (self) {
+        self.callerWebViewDelegate = webViewDelegate;
         self.request = request;
     }
     return self;
@@ -64,16 +74,6 @@
 - (void)viewDidLoad {
 	[super viewDidLoad];
     [self updateToolbarItems];
-}
-
-- (void)viewDidUnload {
-    [super viewDidUnload];
-    self.webView = nil;
-    _backBarButtonItem = nil;
-    _forwardBarButtonItem = nil;
-    _refreshBarButtonItem = nil;
-    _stopBarButtonItem = nil;
-    _actionBarButtonItem = nil;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -102,12 +102,12 @@
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-        return YES;
-    
-    return toInterfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
-}
+//- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
+//    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+//        return YES;
+//    
+//    return toInterfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
+//}
 
 #pragma mark - Getters
 
@@ -218,22 +218,32 @@
 #pragma mark - UIWebViewDelegate
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
+    if(self.callerWebViewDelegate)
+        [self.callerWebViewDelegate webViewDidStartLoad:webView];
+    
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
     [self updateToolbarItems];
 }
 
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView {
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-    
-    if (self.navigationItem.title == nil) {
-        self.navigationItem.title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
-    }
+    if(self.callerWebViewDelegate)
+        [self.callerWebViewDelegate webViewDidFinishLoad:webView];
     
     [self updateToolbarItems];
+    
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    
+    NSString* title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
+    if (title && ![title isEqualToString:@""]) {
+        self.navigationItem.title = title;
+    }
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+    if(self.callerWebViewDelegate)
+        [self.callerWebViewDelegate webView:webView didFailLoadWithError:error];
+    
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     [self updateToolbarItems];
 }
@@ -284,7 +294,10 @@
 }
 
 - (void)doneButtonTapped:(id)sùender {
-    [self dismissViewControllerAnimated:YES completion:NULL];
+    [self dismissViewControllerAnimated:YES completion:^{
+        if(self.callerWebViewDelegate)
+            [self.callerWebViewDelegate webViewDidCloseModal];
+    }];
 }
 
 @end

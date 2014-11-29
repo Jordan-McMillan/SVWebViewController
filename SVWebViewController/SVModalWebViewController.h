@@ -7,12 +7,13 @@
 //  https://github.com/samvermette/SVWebViewController
 
 #import <UIKit/UIKit.h>
+#import "SVWebViewController.h"
 
 @interface SVModalWebViewController : UINavigationController
 
-- (instancetype)initWithAddress:(NSString*)urlString;
-- (instancetype)initWithURL:(NSURL *)URL;
-- (instancetype)initWithURLRequest:(NSURLRequest *)request;
+- (instancetype)initWithAddress:(NSString*)urlString andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate;
+- (instancetype)initWithURL:(NSURL *)URL andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate;
+- (instancetype)initWithURLRequest:(NSURLRequest *)request andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate;
 
 @property (nonatomic, strong) UIColor *barsTintColor;
 

@@ -27,16 +27,16 @@
 #pragma mark - Initialization
 
 
-- (instancetype)initWithAddress:(NSString*)urlString {
-    return [self initWithURL:[NSURL URLWithString:urlString]];
+- (instancetype)initWithAddress:(NSString*)urlString andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
+    return [self initWithURL:[NSURL URLWithString:urlString] andWebViewDelegate:webViewDelegate];
 }
 
-- (instancetype)initWithURL:(NSURL *)URL {
-    return [self initWithURLRequest:[NSURLRequest requestWithURL:URL]];
+- (instancetype)initWithURL:(NSURL *)URL andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
+    return [self initWithURLRequest:[NSURLRequest requestWithURL:URL] andWebViewDelegate:webViewDelegate];
 }
 
-- (instancetype)initWithURLRequest:(NSURLRequest *)request {
-    self.webViewController = [[SVWebViewController alloc] initWithURLRequest:request];
+- (instancetype)initWithURLRequest:(NSURLRequest *)request andWebViewDelegate:(id<SVWebViewDelegate>)webViewDelegate {
+    self.webViewController = [[SVWebViewController alloc] initWithURLRequest:request andWebViewDelegate:webViewDelegate];
     if (self = [super initWithRootViewController:self.webViewController]) {
         UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
                                                                                     target:self.webViewController
